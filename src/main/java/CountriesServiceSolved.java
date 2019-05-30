@@ -1,10 +1,12 @@
 import io.reactivex.Observer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.FutureTask;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import java.util.concurrent.TimeUnit;
 
 class CountriesServiceSolved implements CountriesService {
 
@@ -43,23 +45,31 @@ class CountriesServiceSolved implements CountriesService {
 
     @Override
     public Observable<Country> listPopulationMoreThanOneMillionWithTimeoutFallbackToEmpty(final FutureTask<List<Country>> countriesFromNetwork) {
+
         return Observable.fromFuture(countriesFromNetwork)
-            .flatMap(x -> Observable.fromIterable(x)).filter(y -> y.population>1000000);
+            .flatMap(x -> Observable.fromIterable(x))
+            .filter(y -> y.population > 1000000);
     }
 
     @Override
     public Observable<String> getCurrencyUsdIfNotFound(String countryName, List<Country> countries) {
-        return null; // put your solution here
+        Country countryDefault = new Country("Senegal","USD",0);
+        return Observable.fromIterable(countries)
+            .filter(country -> country.name.equals(countryName))
+            .defaultIfEmpty(countryDefault)
+            .map(country -> country.currency);
     }
 
     @Override
     public Observable<Long> sumPopulationOfCountries(List<Country> countries) {
-        return null; // put your solution here
+        return Observable.fromIterable(countries)
+            .reduce(0L,(value, contry) -> value + contry.population).toObservable();
     }
 
     @Override
     public Single<Map<String, Long>> mapCountriesToNamePopulation(List<Country> countries) {
-        return null; // put your solution here
+        return Observable.fromIterable(countries)
+            .toMap(x -> x.name, y -> y.population);
     }
 
     @Override
